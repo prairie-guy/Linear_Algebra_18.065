@@ -1,7 +1,7 @@
 ### local_startup.jl is loaded at startup by:  ~/.julia/config/startup.jl
 
 
-using LinearAlgebra, RowEchelon, Latexify, Combinatorics
+using LinearAlgebra, RowEchelon, Latexify, Combinatorics, GenericLinearAlgebra
 
 ## This extends in to support substring matching for strings, giving you Python-style syntax
 Base.in(needle::AbstractString, haystack::AbstractString) = occursin(needle, haystack)
@@ -20,11 +20,29 @@ catch
     # Silently fail if REPL not available
 end
 
-# Matrix Utils
 Lx = latexify # function
 const var"@Lx" = var"@latexify" # macro: @Lx A*x = 0
-Cx = collect # Used in Latex to force better rendering
-cv(m,i) = m[:,i]             # col vector i of m
-rv(m,i) = collect(m[i,:]')   # row vector i of m, in col format
+Cx = collect
+## Matrix Utils
+
+# col vector i of m
+cv(m,i) = m[:,i]
+
+# row vector i of m, in col format
+rv(m,i) = collect(m[i,:]') 
 
 
+
+"""
+    isbasiseq(A, B; tol=1e-10)
+
+Test if two bases have matching column directions (up to scaling and permutation).
+Requires both matrices to be full rank.
+"""
+function isbasiseq(A, B; tol=1e-10)
+    An = A ./ sqrt.(diag(A'A))'
+    Bn = B ./ sqrt.(diag(B'B))'
+    C = abs.(An' * Bn)
+    M = C .> 1 - tol
+    all(sum(M, dims=1) .== 1) && all(sum(M, dims=2) .== 1)
+end
