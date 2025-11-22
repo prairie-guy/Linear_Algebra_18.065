@@ -32,6 +32,9 @@ cv(m,i) = m[:,i]
 rv(m,i) = collect(m[i,:]') 
 
 
+# Normalize each column of A
+normcols(A) = A ./ sqrt.(diag(A'A))'
+
 
 """
     isbasiseq(A, B; tol=1e-10)
@@ -40,9 +43,21 @@ Test if two bases have matching column directions (up to scaling and permutation
 Requires both matrices to be full rank.
 """
 function isbasiseq(A, B; tol=1e-10)
-    An = A ./ sqrt.(diag(A'A))'
-    Bn = B ./ sqrt.(diag(B'B))'
+    An = normcols(A)
+    Bn = normcols(B)
     C = abs.(An' * Bn)
-    M = C .> 1 - tol
+    M = C .> 1 - tol                                                                                                                                                                                             
     all(sum(M, dims=1) .== 1) && all(sum(M, dims=2) .== 1)
 end
+
+# Is A a Normal Matrix
+isnormal(A) = A'A == A*A'
+
+# Is A an Orthogonal Matrix
+isorthogonal(A) = A'A == I
+
+# Does A have Orthogonal Columns
+isorthocols(A) = isdiag(A'A)
+
+# Is A a Symmetric Matrix
+issymmetric(A) = S==S'
